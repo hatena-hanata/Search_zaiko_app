@@ -31,24 +31,13 @@ class ZaikoApp(ttk.Frame):
         self.the_menu.entryconfigure("貼り付け", command=lambda: widget.event_generate("<<Paste>>"))
         self.the_menu.tk.call("tk_popup", self.the_menu, event.x_root, event.y_root)
 
-    def btn_click(self,flg,item_id,type_idx,prefec_idx):
+    def btn_click(self,item_id,type_idx,prefec_idx):
         type_lst = ('rental_cd', 'rental_dvd')
         prefec_lst = ('13', '14', '12', '11')
-        if self.check_flg == True:
-            # スクレイピングを並列実行
-            self.start_btn['text'] = 'STOP'
-            self.check_flg = False
-            thread = threading.Thread(target=self.scraping, args=(item_id,type_lst[type_idx],prefec_lst[prefec_idx],))
-            thread.start()
-        else:
-            # 処理を中止するか尋ねる
-            ret = messagebox.askyesno('確認','処理を中止しますか？')
-            if ret == True:
-                self.print_msg('処理を中止します')
-                # 処理を中断
-                self.start_btn['text'] = 'START'
-                self.check_flg = True
-                return
+        self.start_btn['state'] = 'disabled'
+        # スクレイピングを並列実行
+        thread = threading.Thread(target=self.scraping, args=(item_id,type_lst[type_idx],prefec_lst[prefec_idx],))
+        thread.start()
 
     def create_widgets(self):
         # 商品IDラベルと入力ボックス
@@ -72,9 +61,8 @@ class ZaikoApp(ttk.Frame):
         combo_prefec.grid(column=1, row=2, pady=20)
 
         # 処理開始ボタン
-        self.check_flg = True # Trueなら開始
         self.start_btn = Button(text='START', width=23, height=5,
-                           command=lambda: self.btn_click(self.check_flg,txt_item_id.get(), combo_type.current(), combo_prefec.current()))
+                           command=lambda: self.btn_click(txt_item_id.get(), combo_type.current(), combo_prefec.current()))
         self.start_btn.grid(column=0, row=3, padx=10, columnspan=2)
 
         # 進行メッセージ表示ボックス
