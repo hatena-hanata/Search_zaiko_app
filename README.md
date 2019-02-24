@@ -1,0 +1,2 @@
+# Search_zaiko_app
+TSUTAYA在庫検索システムから、在庫がある店舗のみ抽出するGUIアプリ
