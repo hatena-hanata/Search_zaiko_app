@@ -8,6 +8,9 @@ from selenium import webdriver
 import time
 import os
 import threading
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
 
 
 class ZaikoApp(ttk.Frame):
@@ -27,12 +30,23 @@ class ZaikoApp(ttk.Frame):
         self.the_menu.tk.call("tk_popup", self.the_menu, event.x_root, event.y_root)
 
     def btn_click(self, item_id, type_idx, prefec_idx):
+        """
+        startボタンを押すと呼び出される。スクレイピングを並列処理で開始する
+        :param item_id: 商品id
+        :param type_idx: 商品型式（レンタルcd or レンタルdvd）
+        :param prefec_idx: 都道府県id（今回は関東だけ）
+        :return:
+        """
         type_lst = ('rental_cd', 'rental_dvd')
         prefec_lst = ('13', '14', '12', '11')
-        self.start_btn['state'] = 'disabled'
-        # スクレイピングを並列実行
-        thread = threading.Thread(target=self.scraping, args=(item_id, type_lst[type_idx], prefec_lst[prefec_idx],))
-        thread.start()
+        # 処理開始
+        if self.start_btn['text'] == 'START':
+            self.start_btn['state'] = 'disabled'
+            # スクレイピングを並列実行
+            thread = threading.Thread(target=self.scraping, args=(item_id, type_lst[type_idx], prefec_lst[prefec_idx]))
+            thread.start()
+        else:
+            print(threading.enumerate())
 
     def create_widgets(self):
         # 商品IDラベルと入力ボックス
@@ -83,13 +97,14 @@ class ZaikoApp(ttk.Frame):
         # ---ブラウザの起動---
         self.print_msg('ブラウザを起動しています…')
         driver = webdriver.PhantomJS()
+        driver.implicitly_wait(10)  # 要素が見つかるまで10秒待機
         self.print_msg('ブラウザを起動しました')
 
         # ---商品名の取得（商品IDの正誤検知）---
         self.print_msg('商品名を取得しています…')
         item_url = 'https://store-tsutaya.tsite.jp/item/{0}/{1}.html'.format(item_type, item_id)
         driver.get(item_url)
-        time.sleep(5)  # 更新まち　＊＊＊＊変更したい
+        WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.CLASS_NAME, 'header')))  # タイトルが表示されるまで待つ
         item_html = driver.page_source
         item_soup = BeautifulSoup(item_html, 'html.parser')
         if item_soup.find('div', id='errorBlock') is not None:
@@ -99,7 +114,7 @@ class ZaikoApp(ttk.Frame):
             return
 
         item_title = item_soup.find('div', class_='header').find('h2').find('span').string
-        self.print_msg('{}の在庫を検索します'.format(item_title))
+        self.print_msg('タイトル：{}　の在庫を検索します'.format(item_title))
 
         # 店一覧のページをsoupへ
         self.print_msg('店舗一覧を取得しています…')
@@ -108,7 +123,7 @@ class ZaikoApp(ttk.Frame):
                           '.html&ftop=1&adr={2}' \
             .format(item_type, item_id, prefecture_id)
         driver.get(shop_search_url)
-        driver.implicitly_wait(10)  # 更新待機
+        # waitしたほうがよい？
         html = driver.page_source
         soup = BeautifulSoup(html, 'html.parser')
         self.print_msg('店舗一覧の取得が完了しました')
@@ -124,11 +139,13 @@ class ZaikoApp(ttk.Frame):
         cnt = 0  # 掲載されてる店舗数を数える
 
         self.print_msg('各店舗の在庫情報を取得します')
+        self.start_btn['text'] = 'STOP'
+        self.start_btn['state'] = NORMAL
         # ページごと処理
         for page in range(1, lastpage + 1):
             # 店舗一覧ページに戻る
             driver.get(shop_search_url)
-            driver.implicitly_wait(10)  # 更新待機
+            # driver.implicitly_wait(10)  # 更新待機
 
             # ページを更新
             driver.execute_script("ExecuteAjaxRequest('./articleList', 'account=tsutaya&accmd=1&" \
@@ -136,8 +153,8 @@ class ZaikoApp(ttk.Frame):
                                   "&searchType=True&adr={2}&pg={3}&pageSize=20&pageLimit=10000&" \
                                   "template=Ctrl%2fDispListArticle_g12', 'DispListArticle'); return false;" \
                                   .format(item_type, item_id, prefecture_id, page))
-            driver.implicitly_wait(10)  # 更新待機
-            time.sleep(5)  # 更新待機
+            # driver.implicitly_wait(10)  # 更新待機
+            # time.sleep(5)  # 更新待機
 
             # ページのsoupを取得する
             p_html = driver.page_source
@@ -149,7 +166,7 @@ class ZaikoApp(ttk.Frame):
             for link in links:
                 shop_url = link.get('href')
                 cnt += self.get_zaiko_info(driver, shop_url)  # 在庫情報を取得
-                self.print_msg('{}店舗在庫確認が終わりました'.format(cnt))
+                self.print_msg('{}店舗中　{}店舗の在庫確認が終わりました'.format(total_shop_num, cnt))
 
         self.print_msg('在庫情報の取得が終了しました。')
         driver.quit()  # ブラウザを閉じる
