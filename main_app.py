@@ -9,11 +9,6 @@ import time
 import os
 import threading
 
-def is_errorpage(soup):
-    if soup.find('div',id='errorBlock') != None:
-        return True
-    return False
-
 
 class ZaikoApp(ttk.Frame):
 
@@ -26,32 +21,32 @@ class ZaikoApp(ttk.Frame):
         self.the_menu = Menu(self, tearoff=0)
         self.the_menu.add_command(label="貼り付け")
 
-    def show_menu(self,event):
+    def show_menu(self, event):
         widget = event.widget
         self.the_menu.entryconfigure("貼り付け", command=lambda: widget.event_generate("<<Paste>>"))
         self.the_menu.tk.call("tk_popup", self.the_menu, event.x_root, event.y_root)
 
-    def btn_click(self,item_id,type_idx,prefec_idx):
+    def btn_click(self, item_id, type_idx, prefec_idx):
         type_lst = ('rental_cd', 'rental_dvd')
         prefec_lst = ('13', '14', '12', '11')
         self.start_btn['state'] = 'disabled'
         # スクレイピングを並列実行
-        thread = threading.Thread(target=self.scraping, args=(item_id,type_lst[type_idx],prefec_lst[prefec_idx],))
+        thread = threading.Thread(target=self.scraping, args=(item_id, type_lst[type_idx], prefec_lst[prefec_idx],))
         thread.start()
 
     def create_widgets(self):
         # 商品IDラベルと入力ボックス
-        lbl_item_id = Label(text='商品ID').grid(column=0, row=0, padx=10, pady=20) # ラベル
+        lbl_item_id = Label(text='商品ID').grid(column=0, row=0, padx=10, pady=20)  # ラベル
         txt_item_id = Entry(width=15)
-        txt_item_id.bind("<Button-3><ButtonRelease-3>", self.show_menu) # 右クリックで貼り付けできるようにする
-        txt_item_id.grid(column=1, row=0, pady=20,sticky=W)
+        txt_item_id.bind("<Button-3><ButtonRelease-3>", self.show_menu)  # 右クリックで貼り付けできるようにする
+        txt_item_id.grid(column=1, row=0, pady=20, sticky=W)
 
         # 販売形式
-        lbl_type = Label(text='販売形式').grid(column=0, row=1, padx=10,pady=20)
+        lbl_type = Label(text='販売形式').grid(column=0, row=1, padx=10, pady=20)
         combo_type = ttk.Combobox(width=15)
         combo_type['values'] = ('レンタルCD', 'レンタルDVD')
         combo_type['state'] = 'readonly'
-        combo_type.grid(column=1, row=1,pady=20)
+        combo_type.grid(column=1, row=1, pady=20)
 
         # 都道府県
         lbl_prefec = Label(text='都道府県').grid(column=0, row=2, padx=10, pady=20)
@@ -62,12 +57,13 @@ class ZaikoApp(ttk.Frame):
 
         # 処理開始ボタン
         self.start_btn = Button(text='START', width=23, height=5,
-                           command=lambda: self.btn_click(txt_item_id.get(), combo_type.current(), combo_prefec.current()))
+                                command=lambda: self.btn_click(txt_item_id.get(), combo_type.current(),
+                                                               combo_prefec.current()))
         self.start_btn.grid(column=0, row=3, padx=10, columnspan=2)
 
         # 進行メッセージ表示ボックス
-        self.msg_textbox = Text(width=43,height=1)
-        self.msg_textbox.grid(row=0,column=2,padx=20,pady=20,sticky=W)
+        self.msg_textbox = Text(width=43, height=1)
+        self.msg_textbox.grid(row=0, column=2, padx=20, pady=20, sticky=W)
 
         # スクロールバーつきリストボックスを作成、表示
         printFrame = Frame(height=20, width=50)
@@ -79,11 +75,11 @@ class ZaikoApp(ttk.Frame):
         scrollbar.pack(side=RIGHT, fill=Y)
         self.textField["yscrollcommand"] = scrollbar.set
         # 表示
-        printFrame.grid(column=2, row=1, padx=20, pady=20, rowspan=3,sticky=W)
+        printFrame.grid(column=2, row=1, padx=20, pady=20, rowspan=3, sticky=W)
 
-        self.grid() # 表示
+        self.grid()  # 表示
 
-    def scraping(self,item_id,item_type,prefecture_id):
+    def scraping(self, item_id, item_type, prefecture_id):
         # ---ブラウザの起動---
         self.print_msg('ブラウザを起動しています…')
         driver = webdriver.PhantomJS()
@@ -91,19 +87,18 @@ class ZaikoApp(ttk.Frame):
 
         # ---商品名の取得（商品IDの正誤検知）---
         self.print_msg('商品名を取得しています…')
-        item_url = 'https://store-tsutaya.tsite.jp/item/{0}/{1}.html'.format(item_type,item_id)
+        item_url = 'https://store-tsutaya.tsite.jp/item/{0}/{1}.html'.format(item_type, item_id)
         driver.get(item_url)
-        time.sleep(5) # 更新まち　＊＊＊＊変更したい
+        time.sleep(5)  # 更新まち　＊＊＊＊変更したい
         item_html = driver.page_source
-        item_soup = BeautifulSoup(item_html,'html.parser')
-
-        if is_errorpage(item_soup) == True:
+        item_soup = BeautifulSoup(item_html, 'html.parser')
+        if item_soup.find('div', id='errorBlock') is not None:
             self.print_msg('商品ID、販売形式をもう一度確認してください')
             driver.quit()  # ブラウザを閉じる
             self.start_btn['state'] = NORMAL
             return
 
-        item_title = item_soup.find('div',class_='header').find('h2').find('span').string
+        item_title = item_soup.find('div', class_='header').find('h2').find('span').string
         self.print_msg('{}の在庫を検索します'.format(item_title))
 
         # 店一覧のページをsoupへ
@@ -125,7 +120,6 @@ class ZaikoApp(ttk.Frame):
             lastpage = total_shop_num / 20
         else:
             lastpage = int(total_shop_num / 20) + 1
-
 
         cnt = 0  # 掲載されてる店舗数を数える
 
@@ -154,14 +148,14 @@ class ZaikoApp(ttk.Frame):
             links = table.find_all('a')
             for link in links:
                 shop_url = link.get('href')
-                cnt += self.get_zaiko_info(driver,shop_url)  # 在庫情報を取得
+                cnt += self.get_zaiko_info(driver, shop_url)  # 在庫情報を取得
                 self.print_msg('{}店舗在庫確認が終わりました'.format(cnt))
 
         self.print_msg('在庫情報の取得が終了しました。')
         driver.quit()  # ブラウザを閉じる
         self.start_btn['state'] = NORMAL
 
-    def get_zaiko_info(self,driver,url):
+    def get_zaiko_info(self, driver, url):
         # urlを開いてsoupへ
         driver.get(url)
         driver.implicitly_wait(10)
@@ -177,15 +171,17 @@ class ZaikoApp(ttk.Frame):
             return 1
         else:
             if '○' in zaiko:
-                self.textField.insert('end','{0}では在庫があります'.format(shop_name))
+                self.textField.insert('end', '{0}では在庫があります'.format(shop_name))
             else:
-                self.textField.insert('end','{0}では取扱していますが、現在在庫がありません'.format(shop_name))
+                self.textField.insert('end', '{0}では取扱していますが、現在在庫がありません'.format(shop_name))
             return 1
 
-    def print_msg(self,str):
+    def print_msg(self, text):
+        # メッセージボックスにすでに文字が存在していたら、削除
         if self.msg_textbox.get('1.0') != '':
-            self.msg_textbox.delete('1.0','end')
-        self.msg_textbox.insert('1.0',str)
+            self.msg_textbox.delete('1.0', 'end')
+        self.msg_textbox.insert('1.0', text)
+        # すぐ切り替わってしまうので待つ
         time.sleep(1)
 
 
@@ -194,9 +190,9 @@ def main():
     root = Tk()
     root.title("在庫検索")
     root.geometry("540x420")
-    root.resizable(0,0)
+    root.resizable(0, 0)
 
-    # アプリケーション部分作成
+    # アプリケーション実行
     app = ZaikoApp(root)
     app.mainloop()
 
