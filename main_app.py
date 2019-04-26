@@ -19,6 +19,7 @@ class ZaikoApp(ttk.Frame):
         super().__init__(master)
         self.make_menu()
         self.create_widgets()
+        self.is_active = True
 
     def make_menu(self):
         self.the_menu = Menu(self, tearoff=0)
@@ -41,12 +42,16 @@ class ZaikoApp(ttk.Frame):
         prefec_lst = ('13', '14', '12', '11')
         # 処理開始
         if self.start_btn['text'] == 'START':
+            self.textField.delete(0, 'end')  # テキストボックスを空にする
             self.start_btn['state'] = 'disabled'
+            self.is_active = True
             # スクレイピングを並列実行
             thread = threading.Thread(target=self.scraping, args=(item_id, type_lst[type_idx], prefec_lst[prefec_idx]))
             thread.start()
         else:
-            print(threading.enumerate())
+            # スクレイピングをフラグで中止させ、ボタンをスタートに戻す
+            self.is_active = False
+            self.start_btn['text'] = 'START'
 
     def create_widgets(self):
         # 商品IDラベルと入力ボックス
@@ -104,7 +109,7 @@ class ZaikoApp(ttk.Frame):
         self.print_msg('商品名を取得しています…')
         item_url = 'https://store-tsutaya.tsite.jp/item/{0}/{1}.html'.format(item_type, item_id)
         driver.get(item_url)
-        WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.CLASS_NAME, 'header')))  # タイトルが表示されるまで待つ
+        # WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.CLASS_NAME, 'header')))  # タイトルが表示されるまで待つ
         item_html = driver.page_source
         item_soup = BeautifulSoup(item_html, 'html.parser')
         if item_soup.find('div', id='errorBlock') is not None:
@@ -123,7 +128,7 @@ class ZaikoApp(ttk.Frame):
                           '.html&ftop=1&adr={2}' \
             .format(item_type, item_id, prefecture_id)
         driver.get(shop_search_url)
-        # waitしたほうがよい？
+        # WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.CLASS_NAME, 'txt_k f_left')))
         html = driver.page_source
         soup = BeautifulSoup(html, 'html.parser')
         self.print_msg('店舗一覧の取得が完了しました')
@@ -139,10 +144,17 @@ class ZaikoApp(ttk.Frame):
         cnt = 0  # 掲載されてる店舗数を数える
 
         self.print_msg('各店舗の在庫情報を取得します')
+        # 中断可能にする
         self.start_btn['text'] = 'STOP'
         self.start_btn['state'] = NORMAL
+
         # ページごと処理
         for page in range(1, lastpage + 1):
+            # stopボタンが押された
+            if self.is_active is False:
+                self.print_msg('作業を中断しました')
+                return
+
             # 店舗一覧ページに戻る
             driver.get(shop_search_url)
             # driver.implicitly_wait(10)  # 更新待機
@@ -164,6 +176,10 @@ class ZaikoApp(ttk.Frame):
             table = p_soup.find('div', id='DispListArticle').find('table')
             links = table.find_all('a')
             for link in links:
+                # stopボタンが押された
+                if self.is_active is False:
+                    self.print_msg('作業を中断しました')
+                    return
                 shop_url = link.get('href')
                 cnt += self.get_zaiko_info(driver, shop_url)  # 在庫情報を取得
                 self.print_msg('{}店舗中　{}店舗の在庫確認が終わりました'.format(total_shop_num, cnt))
@@ -175,7 +191,8 @@ class ZaikoApp(ttk.Frame):
     def get_zaiko_info(self, driver, url):
         # urlを開いてsoupへ
         driver.get(url)
-        driver.implicitly_wait(10)
+        # 店の名前が表示されるまで待つ
+        # WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.CLASS_NAME, 'green clearfix')))
         html = driver.page_source
         soup = BeautifulSoup(html, 'html.parser')
 
@@ -188,9 +205,9 @@ class ZaikoApp(ttk.Frame):
             return 1
         else:
             if '○' in zaiko:
-                self.textField.insert('end', '{0}では在庫があります'.format(shop_name))
+                self.textField.insert('end', '{}では在庫があります'.format(shop_name))
             else:
-                self.textField.insert('end', '{0}では取扱していますが、現在在庫がありません'.format(shop_name))
+                self.textField.insert('end', '{}では取扱していますが、現在在庫がありません'.format(shop_name))
             return 1
 
     def print_msg(self, text):
