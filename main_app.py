@@ -8,9 +8,6 @@ from selenium import webdriver
 import time
 import os
 import threading
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By
 
 
 class ZaikoApp(ttk.Frame):
@@ -22,17 +19,27 @@ class ZaikoApp(ttk.Frame):
         self.is_active = True
 
     def make_menu(self):
+        """
+        右クリックメニューを作成する
+        :return:
+        """
         self.the_menu = Menu(self, tearoff=0)
         self.the_menu.add_command(label="貼り付け")
 
     def show_menu(self, event):
+        """
+        右クリックメニューに貼り付けを関連付ける
+        :param event:
+        :return:
+        """
         widget = event.widget
         self.the_menu.entryconfigure("貼り付け", command=lambda: widget.event_generate("<<Paste>>"))
         self.the_menu.tk.call("tk_popup", self.the_menu, event.x_root, event.y_root)
 
     def btn_click(self, item_id, type_idx, prefec_idx):
         """
-        startボタンを押すと呼び出される。スクレイピングを並列処理で開始する
+        startボタンを押すと呼び出される。スクレイピングを並列処理で開始する。
+        ボタンのテキストが「stop」の場合、スクレイピング処理を中止させる
         :param item_id: 商品id
         :param type_idx: 商品型式（レンタルcd or レンタルdvd）
         :param prefec_idx: 都道府県id（今回は関東だけ）
@@ -109,7 +116,6 @@ class ZaikoApp(ttk.Frame):
         self.print_msg('商品名を取得しています…')
         item_url = 'https://store-tsutaya.tsite.jp/item/{0}/{1}.html'.format(item_type, item_id)
         driver.get(item_url)
-        # WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.CLASS_NAME, 'header')))  # タイトルが表示されるまで待つ
         item_html = driver.page_source
         item_soup = BeautifulSoup(item_html, 'html.parser')
         if item_soup.find('div', id='errorBlock') is not None:
@@ -128,7 +134,6 @@ class ZaikoApp(ttk.Frame):
                           '.html&ftop=1&adr={2}' \
             .format(item_type, item_id, prefecture_id)
         driver.get(shop_search_url)
-        # WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.CLASS_NAME, 'txt_k f_left')))
         html = driver.page_source
         soup = BeautifulSoup(html, 'html.parser')
         self.print_msg('店舗一覧の取得が完了しました')
@@ -165,9 +170,6 @@ class ZaikoApp(ttk.Frame):
                                   "&searchType=True&adr={2}&pg={3}&pageSize=20&pageLimit=10000&" \
                                   "template=Ctrl%2fDispListArticle_g12', 'DispListArticle'); return false;" \
                                   .format(item_type, item_id, prefecture_id, page))
-            # driver.implicitly_wait(10)  # 更新待機
-            # time.sleep(5)  # 更新待機
-
             # ページのsoupを取得する
             p_html = driver.page_source
             p_soup = BeautifulSoup(p_html, 'html.parser')
