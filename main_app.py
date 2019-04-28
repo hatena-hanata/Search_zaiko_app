@@ -211,6 +211,11 @@ class ZaikoApp(ttk.Frame):
             return 1
 
     def print_msg(self, text):
+        """
+        メッセージボックスに引数のtextを表示させる。表示後1秒待機する。
+        :param text: str
+        :return:
+        """
         # メッセージボックスにすでに文字が存在していたら、削除
         if self.msg_textbox.get('1.0') != '':
             self.msg_textbox.delete('1.0', 'end')

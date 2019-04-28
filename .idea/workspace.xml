@@ -20,14 +20,13 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/main_app.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="249">
-              <caret line="120" lean-forward="true" selection-start-line="120" selection-end-line="120" />
+            <state relative-caret-position="204">
+              <caret line="12" column="43" lean-forward="true" selection-start-line="12" selection-start-column="43" selection-end-line="12" selection-end-column="43" />
               <folding>
                 <element signature="e#8#29#0" expanded="true" />
-                <element signature="e#555#640#0" />
-                <element signature="e#682#885#0" />
-                <element signature="e#7772#7989#0" />
-                <element signature="e#8008#8172#0" />
+                <element signature="e#7650#8425#0" />
+                <element signature="e#8475#8692#0" />
+                <element signature="e#8702#8866#0" />
               </folding>
             </state>
           </provider>
@@ -163,23 +162,24 @@
       <workItem from="1555729502515" duration="2886000" />
       <workItem from="1556191467154" duration="4816000" />
       <workItem from="1556272223830" duration="656000" />
-      <workItem from="1556296913014" duration="2309000" />
+      <workItem from="1556296913014" duration="3414000" />
+      <workItem from="1556455552270" duration="1727000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="11819000" />
+    <option name="totallyTimeSpent" value="14651000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="1912" y="-8" width="1382" height="744" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.4973545" visible="true" weight="0.13918306" />
+      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.4973545" visible="true" weight="0.14145234" />
       <window_info id="Structure" order="1" sideWeight="0.5026455" side_tool="true" weight="0.1417004" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.33551556" />
+      <window_info anchor="bottom" id="Run" order="2" weight="0.33551556" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -200,17 +200,6 @@
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="1" />
   </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/main_app.py</url>
-          <line>56</line>
-          <option name="timeStamp" value="1" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
-  </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/crawling_scraping.py" />
     <entry file="file://$PROJECT_DIR$/garbage.py" />
@@ -229,14 +218,13 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/main_app.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="249">
-          <caret line="120" lean-forward="true" selection-start-line="120" selection-end-line="120" />
+        <state relative-caret-position="204">
+          <caret line="12" column="43" lean-forward="true" selection-start-line="12" selection-start-column="43" selection-end-line="12" selection-end-column="43" />
           <folding>
             <element signature="e#8#29#0" expanded="true" />
-            <element signature="e#555#640#0" />
-            <element signature="e#682#885#0" />
-            <element signature="e#7772#7989#0" />
-            <element signature="e#8008#8172#0" />
+            <element signature="e#7650#8425#0" />
+            <element signature="e#8475#8692#0" />
+            <element signature="e#8702#8866#0" />
           </folding>
         </state>
       </provider>
